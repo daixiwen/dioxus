@@ -1,6 +1,7 @@
-use crate::build::Build;
 use crate::DioxusCrate;
+use crate::{build::Build, builder::BuildResult};
 use anyhow::Context;
+use dioxus_cli_config::Platform;
 use std::env::current_dir;
 use std::fs::create_dir_all;
 use std::ops::Deref;
@@ -13,8 +14,6 @@ use super::*;
 #[derive(Clone, Debug, Parser)]
 #[clap(name = "bundle")]
 pub struct Bundle {
-    #[clap(long)]
-    pub package: Option<Vec<String>>,
     /// The arguments for the dioxus build
     #[clap(flatten)]
     pub build_arguments: Build,
@@ -79,9 +78,45 @@ impl Bundle {
 
         self.build_arguments.resolve(&mut dioxus_crate)?;
 
-        // Build the app
-        self.build_arguments.build(&mut dioxus_crate).await?;
+        dbg!(&self.build_arguments);
 
+        // Build the app
+        let builds = self.build_arguments.build(&mut dioxus_crate).await?;
+
+        // todo: better bundling support
+        for build in builds {
+            match build.platform {
+                Platform::Web => {
+                    self.bundle_web(&dioxus_crate, &build).await?;
+                }
+                Platform::Desktop => {
+                    self.bundle_native(&dioxus_crate).await?;
+                }
+                Platform::Fullstack => {}
+                Platform::StaticGeneration => {}
+                Platform::Mobile => {}
+                _ => {}
+            }
+        }
+
+        Ok(())
+    }
+
+    pub async fn bundle_web(
+        &mut self,
+        dioxus_crate: &DioxusCrate,
+        res: &BuildResult,
+    ) -> anyhow::Result<()> {
+        // nothing special - the outdir is the output
+        println!();
+        println!("🚀 Web Build complete! 🚀");
+        println!("🚀 Output location: {:?}", dioxus_crate.out_dir());
+        println!("🚀 See https://dioxuslabs.com/learn/0.5/deploying for more info on deploying to your favorite provider." );
+
+        Ok(())
+    }
+
+    pub async fn bundle_native(&mut self, dioxus_crate: &DioxusCrate) -> anyhow::Result<()> {
         // copy the binary to the out dir
         let package = dioxus_crate.package();
 
@@ -174,13 +209,8 @@ impl Bundle {
             })
             .binaries(binaries)
             .bundle_settings(bundle_settings);
-        if let Some(packages) = &self.package {
-            settings = settings.package_types(
-                packages
-                    .iter()
-                    .map(|p| p.parse::<PackageType>().unwrap().into())
-                    .collect(),
-            );
+        if let Some(package) = &self.build_arguments.target_args.package {
+            settings = settings.package_types(vec![package.parse::<PackageType>().unwrap().into()]);
         }
 
         if let Some(target) = &self.target_args.target {

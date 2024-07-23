@@ -1,6 +1,6 @@
 use generational_box::GenerationalBoxId;
 use generational_box::UnsyncStorage;
-use std::ops::Deref;
+use std::{cell::RefCell, marker::PhantomData, ops::Deref};
 
 use dioxus_core::prelude::*;
 
@@ -200,3 +200,41 @@ impl<T, S: Storage<T>> Copy for CopyValue<T, S> {}
 read_impls!(CopyValue<T, S: Storage<T>>);
 default_impl!(CopyValue<T, S: Storage<T>>);
 write_impls!(CopyValue<T, S: Storage<T>>);
+
+#[test]
+fn thing() {
+    let a = RefCell::new(Box::new(123));
+    let b = RefCell::new(Some(Box::new(123)));
+
+    struct Bllasd {
+        _p: PhantomData<String>,
+    }
+    enum Thing<T> {
+        Some(T),
+        None,
+        Other,
+    }
+    enum Thing2<T> {
+        Some(T),
+        Other,
+    }
+
+    let r = Thing::Some(Box::new(123));
+    let r = Thing::Some(Box::new(123));
+    let r = Thing::Some(0 as *const i32);
+    let c = RefCell::new(Thing::Some(Box::new(123)));
+    let bd = Box::new(123);
+    let smbd = Some(Box::new(123));
+    let tsmbd = Thing::Some(Box::new(123));
+    let tsmbd2 = Thing2::Some(Box::new(123));
+    let g = 0 as *const i32;
+    println!("r: {}", std::mem::size_of_val(&r));
+    println!("g: {}", std::mem::size_of_val(&g));
+    println!("c: {}", std::mem::size_of_val(&c));
+    println!("bd: {}", std::mem::size_of_val(&bd));
+    println!("smbd: {}", std::mem::size_of_val(&smbd));
+    println!("tsmbd: {}", std::mem::size_of_val(&tsmbd));
+    println!("tsmbd2: {}", std::mem::size_of_val(&tsmbd2));
+
+    fn inner(t: &'static Bllasd) {}
+}

@@ -1,7 +1,10 @@
 use anyhow::Context;
 use dioxus_cli_config::Platform;
 
-use crate::{builder::BuildRequest, dioxus_crate::DioxusCrate};
+use crate::{
+    builder::{BuildRequest, BuildResult},
+    dioxus_crate::DioxusCrate,
+};
 
 use super::*;
 
@@ -107,11 +110,16 @@ impl Build {
         Ok(())
     }
 
-    pub async fn build(&mut self, dioxus_crate: &mut DioxusCrate) -> Result<()> {
+    pub(crate) async fn build(
+        &mut self,
+        dioxus_crate: &mut DioxusCrate,
+    ) -> Result<Vec<BuildResult>> {
         self.resolve(dioxus_crate)?;
         let build_requests = BuildRequest::create(false, dioxus_crate, self.clone());
-        BuildRequest::build_all_parallel(build_requests).await?;
-        Ok(())
+
+        dbg!(&build_requests);
+
+        BuildRequest::build_all_parallel(build_requests).await
     }
 
     pub async fn run(&mut self) -> anyhow::Result<()> {
@@ -140,6 +148,6 @@ impl Build {
 
     /// Get the platform from the build arguments
     pub fn platform(&self) -> Platform {
-        self.platform.unwrap_or_default()
+        self.platform.unwrap()
     }
 }

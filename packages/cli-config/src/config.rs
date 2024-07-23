@@ -11,15 +11,20 @@ use std::str::FromStr;
 #[non_exhaustive]
 pub enum Platform {
     /// Targeting the web platform using WASM
+    #[default]
     #[cfg_attr(feature = "cli", clap(name = "web"))]
     #[serde(rename = "web")]
-    #[default]
     Web,
 
     /// Targeting the desktop platform using Tao/Wry-based webview
     #[cfg_attr(feature = "cli", clap(name = "desktop"))]
     #[serde(rename = "desktop")]
     Desktop,
+
+    /// Targeting the desktop platform using Tao/Wry-based webview
+    #[cfg_attr(feature = "cli", clap(name = "mobile"))]
+    #[serde(rename = "mobile")]
+    Mobile,
 
     /// Targeting the server platform using Axum and Dioxus-Fullstack
     #[cfg_attr(feature = "cli", clap(name = "fullstack"))]
@@ -48,6 +53,7 @@ impl FromStr for Platform {
         match s {
             "web" => Ok(Self::Web),
             "desktop" => Ok(Self::Desktop),
+            "mobile" => Ok(Self::Mobile),
             "fullstack" => Ok(Self::Fullstack),
             "static-generation" => Ok(Self::StaticGeneration),
             _ => Err(UnknownPlatformError),
@@ -67,6 +73,7 @@ impl Platform {
     pub const ALL: &'static [Self] = &[
         Platform::Web,
         Platform::Desktop,
+        Platform::Mobile,
         Platform::Fullstack,
         Platform::StaticGeneration,
     ];
@@ -78,6 +85,7 @@ impl Platform {
             Platform::Desktop => "desktop",
             Platform::Fullstack => "fullstack",
             Platform::StaticGeneration => "static-generation",
+            Platform::Mobile => "mobile",
         }
     }
 }
@@ -280,7 +288,7 @@ pub struct WebWatcherConfig {
     #[serde(default)]
     pub reload_html: bool,
 
-    #[serde(default = "true_bool")]
+    #[serde(default = "false_bool")]
     pub index_on_404: bool,
 }
 

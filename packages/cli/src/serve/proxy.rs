@@ -118,7 +118,14 @@ pub(crate) fn proxy_to(
             crate::serve::insert_no_cache_headers(req.headers_mut());
         }
 
-        client.send(req).await.map_err(handle_error)
+        let res = client.send(req).await.map_err(handle_error);
+
+        // for ci we want to wait a bit
+        if res.is_err() {
+            tokio::time::sleep(std::time::Duration::from_secs(10)).await;
+        }
+
+        res
     })
 }
 

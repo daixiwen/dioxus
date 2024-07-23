@@ -17,6 +17,7 @@ mod web;
 pub use progress::{BuildMessage, MessageType, Stage, UpdateBuildProgress, UpdateStage};
 
 /// A request for a project to be built
+#[derive(Debug)]
 pub struct BuildRequest {
     /// Whether the build is for serving the application
     pub serve: bool,
@@ -38,7 +39,7 @@ impl BuildRequest {
         dioxus_crate: &DioxusCrate,
         build_arguments: impl Into<Build>,
     ) -> Vec<Self> {
-        let build_arguments = build_arguments.into();
+        let build_arguments: Build = build_arguments.into();
         let dioxus_crate = dioxus_crate.clone();
         let platform = build_arguments.platform();
         match platform {

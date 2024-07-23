@@ -63,7 +63,7 @@ impl BuildRequest {
         build.platform = Some(if web {
             Platform::Web
         } else {
-            Platform::Desktop
+            Platform::Fullstack
         });
         // Set the target directory we are building the server in
         let target_dir = get_target_directory(&build, target_directory);

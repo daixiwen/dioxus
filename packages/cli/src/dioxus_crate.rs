@@ -273,6 +273,17 @@ impl DioxusCrate {
     }
 }
 
+impl std::fmt::Debug for DioxusCrate {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("DioxusCrate")
+            .field("package", &self.package)
+            .field("target", &self.target)
+            .field("dioxus_config", &self.dioxus_config)
+            .field("krates", &"...")
+            .finish()
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Executable {
     pub name: String,
